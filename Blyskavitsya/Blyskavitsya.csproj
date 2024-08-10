@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Graphics\" />
     <Folder Include="Components\" />
     <Folder Include="Objects\" />
     <Folder Include="Scenes\" />
