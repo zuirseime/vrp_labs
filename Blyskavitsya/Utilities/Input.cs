@@ -11,7 +11,7 @@ public static class Input
     private static Vector2 _mouseDelta;
     private static Vector2 _lastMousePosition = Vector2.Zero;
 
-    public static void Initialize(GameWindow window)
+    internal static void Initialize(GameWindow window)
     {
         window.KeyDown += OnKeyDown;
         window.KeyUp += OnKeyUp;

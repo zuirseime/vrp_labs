@@ -5,13 +5,14 @@ public static class Time
     private static double _timeElapsed;
     private static double _fps;
 
-    public static float Delta { get; internal set; }
+    public static float Delta { get; private set; }
     public static float FPS { get; private set; }
 
     internal static void CalcualateFramesPerSecond(double delta)
     {
         _frameCount++;
         _timeElapsed += delta;
+        Delta = (float)delta;
 
         if (_timeElapsed >= 1d)
         {
