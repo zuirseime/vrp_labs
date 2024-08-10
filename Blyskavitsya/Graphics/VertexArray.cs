@@ -30,7 +30,7 @@ internal class VertexArray : IDisposable
         }
     }
 
-    void IDisposable.Dispose()
+    public void Dispose()
     {
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
