@@ -10,6 +10,9 @@ public class Game : GameWindow
     private double _fixedTimeStep = 1d / 50d;
     private double _accumulator = 0d;
 
+    internal List<Scene> ScenePool { get; set; } = [];
+    public Scene CurrentScene { get; internal set; }
+
     internal static Game Instance { get; private set; } = null!;
 
     public Game(int width, int height)
