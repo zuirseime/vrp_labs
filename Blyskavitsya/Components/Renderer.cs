@@ -2,7 +2,7 @@
 using OpenTK.Mathematics;
 using OpenTK.Graphics.OpenGL;
 
-namespace Blyskavitsya.Components;
+namespace Blyskavitsya;
 public class Renderer : Component
 {
     private VertexArray _vao = null!;

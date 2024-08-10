@@ -11,7 +11,7 @@ public class Game : GameWindow
     private double _accumulator = 0d;
 
     internal List<Scene> ScenePool { get; set; } = [];
-    public Scene CurrentScene { get; internal set; }
+    public Scene CurrentScene { get; set; }
 
     internal static Game Instance { get; private set; } = null!;
 
@@ -33,29 +33,47 @@ public class Game : GameWindow
         Input.Initialize(this);
     }
 
-    protected override void OnResize(ResizeEventArgs e)
+    protected sealed override void OnResize(ResizeEventArgs e)
     {
         base.OnResize(e);
         GL.Viewport(0, 0, e.Width, e.Height);
         Settings.Resolution = new Vector2i(e.Width, e.Height);
     }
 
-    protected override void OnRenderFrame(FrameEventArgs args)
+    protected sealed override void OnRenderFrame(FrameEventArgs args)
     {
-        Time.CalcualateFramesPerSecond(args.Time);
-
         base.OnRenderFrame(args);
+
+        CurrentScene.OnRender();
+
+        Time.CalcualateFramesPerSecond(args.Time);
+        SwapBuffers();
     }
 
-    protected override void OnUpdateFrame(FrameEventArgs args)
+    protected sealed override void OnUpdateFrame(FrameEventArgs args)
     {
-        Input.Update();
-
         base.OnUpdateFrame(args);
+
+        CurrentScene.OnEarlyUpdate();
+
+        _accumulator += args.Time;
+        while (_accumulator >= _fixedTimeStep)
+        {
+            CurrentScene.OnFixedUpdate();
+            _accumulator -= _fixedTimeStep;
+        }
+
+        CurrentScene.OnUpdate();
+
+        CurrentScene.OnLateUpdate();
+
+        Input.Update();
     }
 
     protected override void OnUnload()
     {
         base.OnUnload();
+
+        CurrentScene.Dispose();
     }
 }

@@ -1,5 +1,5 @@
 ﻿namespace Blyskavitsya;
-public abstract class Scene : IDisposable
+public class Scene : IDisposable
 {
     protected bool _disposed;
     protected List<GameObject> _entityPool = [];
@@ -8,34 +8,29 @@ public abstract class Scene : IDisposable
     private double _accumulator = 0d;
 
     public Camera MainCamera { get; private set; }
-    public string Name { get; protected set; } = "Scene";
 
-    protected Scene()
+    public Scene()
     {
         Game.Instance.ScenePool.Add(this);
     }
 
-    public void Navigate(string sceneName)
+    public void Navigate(Type scene)
     {
-        Game.Instance.CurrentScene = Game.Instance.ScenePool.First(s => s.Name == sceneName);
+        Game.Instance.CurrentScene = Game.Instance.ScenePool.First(s => s.GetType() == scene);
         Game.Instance.CurrentScene.OnStart();
         Dispose();
     }
 
-    internal void OnStart()
+    public void OnStart()
     {
         GameObject camera = new("MainCamera");
         MainCamera = camera.AddComponent<Camera>();
         MainCamera.FieldOfView = 90;
-        camera.AddComponent<CameraMovement>();
         _entityPool.Add(camera);
 
         Start();
 
         _entityPool.ForEach(e => e.Start());
-
-        Console.WriteLine(Name);
-        _entityPool.ForEach(Console.WriteLine);
     }
     protected virtual void Start() { }
 
@@ -56,7 +51,6 @@ public abstract class Scene : IDisposable
     internal void OnUpdate()
     {
         _entityPool.ForEach(e => e.Update());
-        Game.Instance.Title = $"{Name} - {MainCamera.transform.Position}";
         Update();
     }
     protected virtual void Update() { }

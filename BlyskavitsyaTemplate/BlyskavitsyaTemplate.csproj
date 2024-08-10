@@ -11,9 +11,4 @@
     <ProjectReference Include="..\Blyskavitsya\Blyskavitsya.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="data\shaders\" />
-    <Folder Include="data\textures\" />
-  </ItemGroup>
-
 </Project>
