@@ -2,12 +2,8 @@
 using OpenTK.Mathematics;
 
 namespace Blyskavitsya.Graphics;
-public sealed class Shader : IDisposable
+public sealed class Shader : Resource
 {
-    private bool _disposed;
-
-    internal int Handle { get; private set; }
-
     public Shader(string vertexPath, string fragmentPath)
     {
         Handle = GL.CreateProgram();
@@ -18,14 +14,15 @@ public sealed class Shader : IDisposable
         LinkProgram();
 
         DisposeShader(vertexShader);
+        DisposeShader(fragmentShader);
     }
 
     private int CreateShader(ShaderType type, string path)
     {
         int shader = GL.CreateShader(type);
 
-        GL.ShaderSource(shader, Shader.LoadSource(path));
-        Shader.CompileShader(shader, type);
+        GL.ShaderSource(shader, LoadSource(path));
+        CompileShader(shader, type);
         GL.AttachShader(Handle, shader);
 
         return shader;
@@ -37,14 +34,86 @@ public sealed class Shader : IDisposable
 
         GL.GetProgram(Handle, GetProgramParameterName.LinkStatus, out int status);
         if (status == (int)All.False)
-            throw new Exception($"Error linking program: {GL.GetProgramInfoLog(Handle)}");
+            throw new Exception($"Shader Program Linking Error: {GL.GetProgramInfoLog(Handle)}");
     }
 
-    public void SetInt(string name, int value) => GL.Uniform1(GL.GetUniformLocation(Handle, name), value);
-    public void SetFloat(string name, float value) => GL.Uniform1(GL.GetUniformLocation(Handle, name), value);
-    public void SetVector3(string name, Vector3 value) => GL.Uniform3(GL.GetUniformLocation(Handle, name), value);
-    public void SetVector4(string name, Color4 value) => GL.Uniform4(GL.GetUniformLocation(Handle, name), value);
-    public void SetMatrix4(string name, Matrix4 value) => GL.UniformMatrix4(GL.GetUniformLocation(Handle, name), true, ref value);
+    public void SetInt(string name, int value)
+    {
+        int location = GL.GetUniformLocation(Handle, name);
+        if (location == -1)
+        {
+            //Console.WriteLine($"Warning: Uniform '{name}' not found in shader.");
+            return;
+        }
+        GL.Uniform1(location, value);
+
+        CheckGLError($"SetInt: {name}:{value}");
+    }
+
+    public void SetFloat(string name, float value)
+    {
+        int location = GL.GetUniformLocation(Handle, name);
+        if (location == -1)
+        {
+            //Console.WriteLine($"Warning: Uniform '{name}' not found in shader.");
+            return;
+        }
+        GL.Uniform1(location, value);
+
+        CheckGLError($"SetFloat: {name}:{value}");
+    }
+
+    public void SetVector3(string name, Vector3 value)
+    {
+        int location = GL.GetUniformLocation(Handle, name);
+        if (location == -1)
+        {
+            //Console.WriteLine($"Warning: Uniform '{name}' not found in shader.");
+            return;
+        }
+        GL.Uniform3(location, value);
+
+        CheckGLError($"SetVector3: {name}:{value}");
+    }
+
+    public void SetVector4(string name, Vector4 value)
+    {
+        int location = GL.GetUniformLocation(Handle, name);
+        if (location == -1)
+        {
+            //Console.WriteLine($"Warning: Uniform '{name}' not found in shader.");
+            return;
+        }
+        GL.Uniform4(location, value);
+
+        CheckGLError($"SetVector4: {name}:{value}");
+    }
+
+    public void SetColor4(string name, Color4 value)
+    {
+        int location = GL.GetUniformLocation(Handle, name);
+        if (location == -1)
+        {
+            //Console.WriteLine($"Warning: Uniform '{name}' not found in shader.");
+            return;
+        }
+        GL.Uniform4(location, value);
+
+        CheckGLError($"SetColor4: {name}:{value}");
+    }
+
+    public void SetMatrix4(string name, Matrix4 value)
+    {
+        var location = GL.GetUniformLocation(Handle, name);
+        if (location == -1)
+        {
+            //Console.WriteLine($"Warning: Uniform '{name}' not found in shader.");
+            return;
+        }
+        GL.UniformMatrix4(location, true, ref value);
+
+        CheckGLError($"SetMatrix4: {name}:{value}");
+    }
 
     private static void CompileShader(int shader, ShaderType type)
     {
@@ -52,17 +121,16 @@ public sealed class Shader : IDisposable
 
         GL.GetShader(shader, ShaderParameter.CompileStatus, out int status);
         if (status == (int)All.False)
-            throw new Exception($"Error compiling {type}: {GL.GetShaderInfoLog(shader)}");
+            throw new Exception($"{type} Compilation Error: {GL.GetShaderInfoLog(shader)}");
+
+        CheckGLError($"CompileShader: {shader}:{type}");
     }
 
     private static string LoadSource(string path)
     {
         try
         {
-            string source = File.ReadAllText(Path.Combine("public/shaders", path));
-            Console.WriteLine(source + '\n');
-
-            return source;
+            return File.ReadAllText(path);
         } catch (Exception ex)
         {
             throw new Exception($"Failed to load shader source file: {ex.Message}");
@@ -79,22 +147,11 @@ public sealed class Shader : IDisposable
         GL.DeleteShader(shader);
     }
 
-    private void Dispose(bool disposing)
+    protected override void Dispose(bool disposing)
     {
-        if (!_disposed)
+        if (disposing)
         {
-            if (disposing)
-            {
-                GL.DeleteProgram(Handle);
-            }
-
-            _disposed = true;
+            GL.DeleteProgram(Handle);
         }
-    }
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
 }

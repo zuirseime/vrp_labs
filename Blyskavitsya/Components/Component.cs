@@ -1,58 +1,17 @@
 ﻿namespace Blyskavitsya;
-public abstract class Component : IDisposable
+public abstract class Component() : Objects.Object(""), IDisposable
 {
-    protected bool _disposed;
+    public GameObject GameObject { get; private set; } = null!;
+    public Transform Transform => GameObject.Transform;
 
-    public GameObject gameObject { get; private set; } = null!;
-    public Transform transform => gameObject.transform;
-
-    internal void SetEntity(GameObject entity) => this.gameObject = entity;
-
-    protected T AddComponent<T>() where T : Component, new() => gameObject.AddComponent<T>();
-    protected T GetComponent<T>() where T : Component => gameObject.GetComponent<T>();
-    protected bool TryGetComponent<T>(out T? component) where T : Component => gameObject.TryGetComponent(out component);
-
-    internal void OnStart()
+    internal void SetEntity(GameObject entity)
     {
-        Start();
+        GameObject = entity;
     }
-    protected virtual void Start() { }
 
-    internal void OnEarlyUpdate()
-    {
-        EarlyUpdate();
-    }
-    protected virtual void EarlyUpdate() { }
+    public T AddComponent<T>() where T : Component, new() => GameObject.AddComponent<T>();
+    public T? GetComponent<T>() where T : Component => GameObject.GetComponent<T>();
+    public bool TryGetComponent<T>(out T? component) where T : Component => GameObject.TryGetComponent(out component);
 
-    internal void OnUpdate()
-    {
-        Update();
-    }
-    protected virtual void Update() { }
-
-    internal void OnFixedUpdate()
-    {
-        FixedUpdate();
-    }
-    protected virtual void FixedUpdate() { }
-
-    internal void OnLateUpdate()
-    {
-        LateUpdate();
-    }
-    protected virtual void LateUpdate() { }
-
-    internal void OnRender()
-    {
-        Render();
-    }
-    protected virtual void Render() { }
-
-    protected virtual void Dispose(bool disposing) { }
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
+    public void Destroy(GameObject gameObject) => GameObject.Destroy(gameObject);
 }

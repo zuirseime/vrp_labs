@@ -1,76 +1,100 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using Blyskavitsya.Objects;
 using OpenTK.Mathematics;
+using System.Reflection;
+using System.Text.Json;
 
 namespace Blyskavitsya.Graphics;
-public sealed class Material(string name, Material.MaterialType type) : IDisposable
+
+public enum UniformType
 {
-    public enum MaterialType
-    {
-        Diffuse, Specular, Emission
-    }
+    Int, Float, Vector3, Vector4, Color4, Matrix4
+}
 
-    public struct Map(Color4 color)
-    {
-        public Texture? Texture { get; set; }
-        public Color4 Color { get; set; } = color;
-    }
+public enum MaterialType
+{
+    Lit, Unlit
+}
 
-    private bool _disposed;
+public class Uniform(UniformType type, object value)
+{
+    public UniformType Type { get; set; } = type;
+    public object Value { get; set; } = value;
+}
 
-    public string Name { get; set; } = name;
+public class Material(Shader shader, MaterialType type = MaterialType.Lit) : Resource
+{
+    private readonly Dictionary<string, Uniform> _uniforms = [];
+    private Shader _shader = shader;
+
+    public Texture? Texture { get; set; }
+    public Color4 Color { get; set; } = Color4.White;
     public MaterialType Type { get; set; } = type;
-    public Map DiffuseMap = new(Color4.White);
-    public Map SpecularMap = new(Color4.White);
-    public Map EmissionMap = new(Color4.Black);
-    public float Shininess { get; set; } = 32f;
 
-    public void Apply(Shader shader)
+    public void SetUniform(UniformType type, string name, object value)
     {
-        shader.SetVector4("material.diffuse.color", DiffuseMap.Color);
-        shader.SetVector4("material.specular.color", SpecularMap.Color);
-        shader.SetVector4("material.emission.color", EmissionMap.Color);
-        shader.SetFloat("material.shininess", Shininess);
-
-        if (DiffuseMap.Texture != null)
-        {
-            GL.ActiveTexture(TextureUnit.Texture0);
-            DiffuseMap.Texture.Bind();
-            shader.SetInt("material.diffuse.tex", 0);
-        }
-
-        if (SpecularMap.Texture != null)
-        {
-            GL.ActiveTexture(TextureUnit.Texture1);
-            SpecularMap.Texture.Bind(TextureUnit.Texture1);
-            shader.SetInt("material.specular.tex", 1);
-        }
-
-        if (EmissionMap.Texture != null)
-        {
-            GL.ActiveTexture(TextureUnit.Texture2);
-            EmissionMap.Texture.Bind(TextureUnit.Texture2);
-            shader.SetInt("material.emission.tex", 2);
-        }
+        if (_uniforms.TryGetValue(name, out Uniform? uniform))
+            uniform.Value = value;
+        else _uniforms.Add(name, new Uniform(type, value));
     }
 
-    private void Dispose(bool disposing)
+    internal void Bind()
     {
-        if (!_disposed)
+        _shader.Bind();
+        Texture?.Bind();
+    }
+    internal void Unbind()
+    {
+        Texture?.Unbind();
+        _shader.Unbind();
+    }
+
+    internal void Apply()
+    {
+        Texture?.Apply();
+        _shader.SetInt(nameof(Texture), 0);
+
+        var camera = Camera.MainCamera;
+        _shader.SetColor4(nameof(Color), Color);
+        _shader.SetVector3(nameof(Camera), camera.Transform.Position);
+        _shader.SetFloat("renderDistance", RenderDistance);
+
+        if (Type == MaterialType.Lit)
         {
-            if (disposing)
+            List<Light?> lights = [];
+            lights.Add(GameObject.FindObjectOfType<Sun>());
+            lights.Add(GameObject.FindObjectOfType<Moon>());
+            lights.AddRange(GameObject.FindObjectsOfType<Light>().Where(l 
+                => Vector3.Distance(l.Transform.Position, camera.Transform.Position) <= RenderDistance));
+            
+            for (int i = 0; i < lights.Count; i++)
             {
-                DiffuseMap.Texture?.Dispose();
-                SpecularMap.Texture?.Dispose();
-                EmissionMap.Texture?.Dispose();
+                if (lights[i] is not null)
+                {
+                    _shader.SetInt($"{nameof(lights)}[{i}].{nameof(Light.Type)}", (int)lights[i]!.Type);
+                    _shader.SetVector3($"{nameof(lights)}[{i}].{nameof(Light.Transform.Position)}", lights[i]!.Transform.Position);
+                    _shader.SetVector3($"{nameof(lights)}[{i}].Direction", lights[i]!.Transform.Forward);
+                    _shader.SetColor4($"{nameof(lights)}[{i}].{nameof(Light.Color)}", lights[i]!.Color);
+                    _shader.SetFloat($"{nameof(lights)}[{i}].{nameof(Light.Intensity)}", lights[i]!.Intensity);
+                }
             }
 
-            _disposed = true;
+            _shader.SetInt("lightCount", lights.Count);
+        }
+
+        foreach (var kvp in _uniforms)
+        {
+            var method = typeof(Shader).GetMethod($"Set{kvp.Value.Type}", BindingFlags.Instance | BindingFlags.Public);
+            method?.Invoke(_shader, [kvp.Key, kvp.Value.Value]);
         }
     }
 
-    public void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
+        if (!disposing)
+            return;
+
+        _uniforms.Clear();
+        _shader?.Dispose();
+        Texture?.Dispose();
     }
 }

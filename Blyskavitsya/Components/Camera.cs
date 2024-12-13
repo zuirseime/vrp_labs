@@ -3,28 +3,17 @@
 namespace Blyskavitsya;
 public class Camera : Component
 {
-    public float FieldOfView { get; set; }
+    public float FieldOfView { get; set; } = Globals.FieldOfView;
     public float DepthNear { get; set; } = 0.01f;
     public float DepthFar { get; set; } = 100.0f;
+    public Color4 Background { get; set; } = Color4.Blue;
 
-    protected override void LateUpdate() => UpdateVectors();
+    public static Camera MainCamera { get; private set; } = null!;
+    public void SetMain() => MainCamera = this;
 
     internal Matrix4 GetViewMatrix()
-        => Matrix4.LookAt(transform.Position, transform.Position + transform.Forward, transform.Up);
+        => Matrix4.LookAt(Transform.Position, Transform.Position + Transform.Forward, Transform.Up);
 
-    internal Matrix4 GetProjectionMatrix()
-        => Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FieldOfView), Settings.AspectRatio, DepthNear, DepthFar);
-
-    private void UpdateVectors()
-    {
-        Vector3 front = new()
-        {
-            X = MathF.Cos(MathHelper.DegreesToRadians(transform.Rotation.Y)) * MathF.Cos(MathHelper.DegreesToRadians(transform.Rotation.X)),
-            Y = MathF.Sin(MathHelper.DegreesToRadians(transform.Rotation.X)),
-            Z = MathF.Sin(MathHelper.DegreesToRadians(transform.Rotation.Y)) * MathF.Cos(MathHelper.DegreesToRadians(transform.Rotation.X))
-        };
-        transform.Forward = Vector3.Normalize(front);
-        transform.Right = Vector3.Normalize(Vector3.Cross(transform.Forward, Vector3.UnitY));
-        transform.Up = Vector3.Normalize(Vector3.Cross(transform.Right, transform.Forward));
-    }
+    internal Matrix4 GetProjectionMatrix() 
+        => Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FieldOfView), AspectRatio, DepthNear, DepthFar);
 }

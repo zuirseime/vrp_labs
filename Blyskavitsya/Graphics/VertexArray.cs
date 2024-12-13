@@ -1,7 +1,7 @@
 ﻿using OpenTK.Graphics.OpenGL;
 
 namespace Blyskavitsya.Graphics;
-internal class VertexArray : IDisposable
+public class VertexArray : IDisposable
 {
     private bool _disposed;
 
@@ -12,27 +12,27 @@ internal class VertexArray : IDisposable
 
     internal void LinkAttrib<T>(Buffer<T> vbo, int layout, int size) where T : struct
     {
-        Bind();
         vbo.Bind();
         GL.VertexAttribPointer(layout, size, VertexAttribPointerType.Float, false, 0, 0);
         GL.EnableVertexAttribArray(layout);
-        Unbind();
+        vbo.Unbind();
     }
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!_disposed)
+        if (disposing)
         {
-            if (disposing)
-                GL.DeleteVertexArray(Handle);
-
-            _disposed = true;
+            GL.DeleteVertexArray(Handle);
         }
     }
 
     public void Dispose()
     {
-        Dispose(disposing: true);
+        if (!_disposed)
+        {
+            Dispose(disposing: true);
+            _disposed = true;
+        }
         GC.SuppressFinalize(this);
     }
 }

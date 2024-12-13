@@ -7,12 +7,14 @@ public static class Time
 
     public static float Delta { get; private set; }
     public static float FPS { get; private set; }
+    public static float Total { get; private set; }
 
     internal static void CalcualateFramesPerSecond(double delta)
     {
         _frameCount++;
         _timeElapsed += delta;
         Delta = (float)delta;
+        Total += Delta;
 
         if (_timeElapsed >= 1d)
         {
@@ -20,5 +22,10 @@ public static class Time
             _frameCount = 0;
             _timeElapsed = 0;
         }
+    }
+
+    internal static void DropDelta()
+    {
+        Delta = 0;
     }
 }
