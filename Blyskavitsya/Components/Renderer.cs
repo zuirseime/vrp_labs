@@ -1,7 +1,6 @@
 ﻿using Blyskavitsya.Graphics;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.OpenGL;
-using Blyskavitsya.Utilities;
 
 namespace Blyskavitsya.Components;
 public class Renderer : Component
@@ -18,12 +17,6 @@ public class Renderer : Component
 
     public bool CullBack { get; set; } = true;
     public float Opacity { get; set; } = 1.0f;
-
-//#if DEBUG
-    private Mesh? _pivotMesh = MeshFactory.CreateCube(10f);
-    private Material? _pivotMaterial = Resources.GetResource<Material>("Pivot");
-    private VertexArray _pivotVao = null!;
-//#endif
 
     protected virtual void SetBuffers()
     {
@@ -96,38 +89,7 @@ public class Renderer : Component
         uv.Dispose();
 
         UnbindBuffers();
-
-//#if DEBUG
-        //SetupPivotMesh();
-//#endif
     }
-
-//#if DEBUG
-    private void SetupPivotMesh()
-    {
-        if (_pivotMesh is null)
-            return;
-
-        _pivotVao = new VertexArray();
-        _pivotVao.Bind();
-
-        Buffer<Vector3> pivotVbo = new(BufferTarget.ArrayBuffer);
-        pivotVbo.SetData(_pivotMesh.Vertices, BufferUsageHint.StaticDraw);
-
-        Buffer<int> pivotEbo = new(BufferTarget.ElementArrayBuffer);
-        pivotEbo.SetData(_pivotMesh.Indices, BufferUsageHint.StaticDraw);
-
-        _pivotVao.LinkAttrib(pivotVbo, 0, 3);
-
-        _pivotVao.Unbind();
-
-        pivotVbo.Unbind();
-        pivotEbo.Unbind();
-
-        pivotVbo.Dispose();
-        pivotEbo.Dispose();
-    }
-//#endif
 
     protected override void Render()
     {
@@ -162,49 +124,7 @@ public class Renderer : Component
             GL.Disable(EnableCap.CullFace);
 
         GL.Disable(EnableCap.Blend);
-
-//#if DEBUG
-        //RenderPivotPoint();
-//#endif
-
     }
-
-//#if DEBUG
-    private void RenderPivotPoint()
-    {
-        if (_pivotMaterial is null || _pivotMesh is null)
-            return;
-
-        GL.Enable(EnableCap.Blend);
-        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
-        GL.Disable(EnableCap.DepthTest);
-
-        _pivotMaterial?.Bind();
-        _pivotMaterial?.Apply();
-
-        Matrix4 translation = Matrix4.CreateTranslation(Transform.Position);
-        Matrix4 rotation = Matrix4.CreateFromQuaternion(Quaternion.Identity);
-        Matrix4 scale = Matrix4.CreateScale(Vector3.Zero);
-        Matrix4 model = scale * rotation * translation;
-        Matrix4 view = Camera.MainCamera.GetViewMatrix();
-        Matrix4 projection = Camera.MainCamera.GetProjectionMatrix();
-
-        _pivotMaterial?.SetUniform(UniformType.Matrix4, nameof(model), model);
-        _pivotMaterial?.SetUniform(UniformType.Matrix4, nameof(view), view);
-        _pivotMaterial?.SetUniform(UniformType.Matrix4, nameof(projection), model);
-
-        _pivotVao.Bind();
-        GL.DrawElements(PrimitiveType.Triangles, _pivotMesh!.Indices.Length, DrawElementsType.UnsignedInt, nint.Zero);
-        _pivotVao.Unbind();
-
-        _pivotMaterial?.Unbind();
-
-        GL.Enable(EnableCap.DepthTest);
-
-        GL.Disable(EnableCap.Blend);
-    }
-//#endif
 
     protected override void Dispose(bool disposing)
     {

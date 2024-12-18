@@ -8,11 +8,29 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Materials\Terrain.json" />
+    <None Remove="Resources\Shaders\terrain.frag" />
+    <None Remove="Resources\Shaders\terrain.vert" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\Materials\Terrain.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Shaders\terrain.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Shaders\terrain.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Blyskavitsya\Blyskavitsya.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Components\" />
+    <Folder Include="Resources\Textures\" />
   </ItemGroup>
 
 </Project>
