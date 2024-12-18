@@ -1,0 +1,12 @@
+{
+  "Name": "Moon",
+  "Shader": "sun",
+  "Type": "Unlit",
+  "Texture": "",
+  "Color": {
+    "R": 0.7,
+    "G": 0.8,
+    "B": 1.0,
+    "A": 1.0
+  }
+}
