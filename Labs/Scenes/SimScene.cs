@@ -17,6 +17,7 @@ internal class SimScene() : Scene("Main Scene")
         Camera.MainCamera.Transform.Position = Transform.WorldUp * 100;
         Camera.MainCamera.Transform.Rotation = Quaternion.FromAxisAngle(Vector3.UnitX, 200);
         Camera.MainCamera.Background = new Color4(63, 128, 255, 255);
+        Camera.MainCamera.AddComponent<CameraController>();
 
         SkyBox skyBox = new();
         var skyRenderer = skyBox.AddComponent<Renderer>();
