@@ -96,7 +96,7 @@ public class GameObject : Objects.Object
         Vector3 right = Vector3.Cross(Transform.Up, forward).Normalized();
         Vector3 up = Vector3.Cross(forward, right);
 
-        Matrix3 rotation = new(right, up, -forward);
+        Matrix3 rotation = new(right, up, forward);
         Transform.Rotation = Quaternion.FromMatrix(rotation);
     }
 

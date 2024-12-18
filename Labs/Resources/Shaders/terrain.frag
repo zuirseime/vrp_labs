@@ -31,6 +31,22 @@ uniform float renderDistance;
 uniform float density = 2;
 uniform float heightFalloff = 0.3;
 
+vec4 calculateDirectionalLight(Light light, vec3 normal) {
+	float diff = max(dot(normal, normalize(-light.Direction)), 0.0);
+
+	return light.Color * diff * light.Intensity;
+}
+
+vec4 calculatePointLight(Light light, vec3 fragPos, vec3 normal) {
+	vec3 lightDir = normalize(light.Position - fragPos);
+	float diff = max(dot(normal, lightDir), 0.0);
+
+	float distance = length(light.Position - fragPos);
+	float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * pow(distance, 2.0));
+
+	return light.Color * diff * light.Intensity * attenuation;
+}
+
 float getFogFactor(float distance) {
 	float height = WorldPos.y;
 
@@ -60,6 +76,17 @@ void main() {
     if (AO > 0) {
 		newColor.rgb *= AO;
 	}
+
+	vec4 light = vec4(0.0);
+
+	for (int i = 0; i < lightCount; i++) {
+		if (lights[i].Type == 0)
+			light += calculateDirectionalLight(lights[i], Normal);
+		else if (lights[i].Type == 1)
+			light += calculatePointLight(lights[i], WorldPos, Normal);
+	}
+	
+	newColor.rgb *= light.rgb;
 	
 	vec4 finalColor = mix(fogColor, newColor, fogFactor);
 	
