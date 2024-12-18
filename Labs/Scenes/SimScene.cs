@@ -24,6 +24,11 @@ internal class SimScene() : Scene("Main Scene")
         terrainRenderer.Material = Resources.GetResource<Material>("Terrain");
         terrain.AddComponent<TerrainMesh>();
 
+        GameObject water = new("Water", world);
+        var waterRenderer = water.AddComponent<Renderer>();
+        waterRenderer.Material = Resources.GetResource<Material>("Water");
+        water.AddComponent<WaterMesh>();
+
         GameObject terrainGenerator = new("TerrainGenerator");
         terrainGenerator.AddComponent<MapGenerator>();
 

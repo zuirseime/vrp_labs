@@ -15,6 +15,7 @@ internal class MapGenerator : Component
     public Vector2 Offset { get; set; } = Vector2.Zero;
 
     private TerrainMesh? _terrain;
+    private WaterMesh? _water;
 
     protected override async void Start()
     {
@@ -28,15 +29,21 @@ internal class MapGenerator : Component
         float[,] humidityMap = await humidityTask;
 
         _terrain = GameObject.FindObjectOfType<TerrainMesh>();
-        if (_terrain is null)
+        _water = GameObject.FindObjectOfType<WaterMesh>();
+        if (_terrain is null || _water is null)
             return;
 
         _terrain.CreateShape(heightMap, Width, Height);
         _terrain.DrawColorMap(heightMap, temperatureMap, humidityMap);
 
+        _water.CreateShape(heightMap, Width, Height);
+        _water.DrawColorMap(heightMap, temperatureMap, humidityMap);
+
         _terrain.ConfirmMesh();
+        _water.ConfirmMesh();
 
         _terrain.Dispose();
+        _water.Dispose();
     }
 
     private async Task<float[,]> GetMap(int width, int height, int seed, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)

@@ -10,7 +10,6 @@ public class TerrainMesh : Component
     private MeshData _meshData = null!;
     private Dictionary<DrawMode, Texture> _textures = [];
     private DrawMode _drawMode = DrawMode.ColorMap;
-    private DrawMode _previousDrawMode;
 
     private int _width;
     private int _height;
